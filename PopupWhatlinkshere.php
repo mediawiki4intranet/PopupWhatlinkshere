@@ -1,78 +1,79 @@
 <?php
 
 /**
- * Extension is similar to DynamicPageList & company, but the code is simpler
- * and the functionality is more advanced.
+ * PopupWhatlinkshere extension
  *
- * Features:
- * - <subpagelist> tag produces a simple or templated list of pages selected by dynamic conditions
- * - Special page with form interface to <subpagelist> (Special:PopupWhatlinkshere)
- * - {{#getsection|Title|section number}} parser function for extracting page sections
- * - Automatic AJAX display of subpages everywhere:
- *   $egSubpagelistAjaxNamespaces = array(NS_MAIN => true) setting enables this on namespaces specified.
- *   $egSubpagelistAjaxDisableRE is a regexp disables this on pages whose title match it.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ * http://www.gnu.org/copyleft/gpl.html
  *
  * @package MediaWiki
  * @subpackage Extensions
  * @author Vitaliy Filippov <vitalif@mail.ru>, 2009+
- * @author based on SubPageList by Martin Schallnahs <myself@schaelle.de>, Rob Church <robchur@gmail.com>
- * @license GNU General Public Licence 2.0 or later
+ * @license GNU General Public License 2.0 or later
  * @link http://wiki.4intra.net/PopupWhatlinkshere
- *
- * @TODO Caching: templatelinks are now saved, but we still need to save references to
- * @TODO    category and subpage parents to the DB, and flush the cache when page is
- * @TODO    added to the category or when a new subpage of referenced parent is created.
  */
 
 if (!defined('MEDIAWIKI'))
 {
-    echo "This file is an extension to the MediaWiki software and cannot be used standalone.\n";
-    die();
+	echo "This file is an extension to the MediaWiki software and cannot be used standalone.\n";
+	die();
 }
 
 $wgExtensionFunctions[] = 'efPopupWhatlinkshere';
 $wgExtensionMessagesFiles['PopupWhatlinkshere'] = dirname(__FILE__).'/PopupWhatlinkshere.i18n.php';
 $wgAutoloadClasses['PopupWhatlinkshere'] = dirname(__FILE__).'/PopupWhatlinkshere.class.php';
 $wgExtensionCredits['parserhook'][] = array(
-    'name'    => 'Popup What links here',
-    'author'  => 'Vladimir Koptev',
-    'url'     => 'http://wiki.4intra.net/PopupWhatlinkshere',
-    'version' => '2013-06-26',
+	'name'    => 'Popup What links here',
+	'author'  => 'Vladimir Koptev',
+	'url'     => 'http://wiki.4intra.net/PopupWhatlinkshere',
+	'version' => '2013-06-26',
 );
 $wgResourceModules['PopupWhatlinkshere'] = array(
-	'scripts' => array('PopupWhatlinkshere.js'),
-	'styles' => array('PopupWhatlinkshere.css'),
-	'dependencies' => array( 'jquery' ),
+	'scripts'       => array('PopupWhatlinkshere.js'),
+	'styles'        => array('PopupWhatlinkshere.css'),
+	'dependencies'  => array('jquery'),
 	'localBasePath' => __DIR__,
 	'remoteExtPath' => 'PopupWhatlinkshere',
-	'position' => 'top',
+	'position'      => 'top',
 );
 $wgAjaxExportList[] = 'efAjaxWLHList';
 
 // Clear floats for ArticleViewHeader {
 if (!function_exists('articleHeaderClearFloats'))
 {
-    global $wgHooks;
-    $wgHooks['ParserFirstCallInit'][] = 'checkHeaderClearFloats';
-    function checkHeaderClearFloats($parser)
-    {
-        global $wgHooks;
-        if (!in_array('articleHeaderClearFloats', $wgHooks['ArticleViewHeader']))
-            $wgHooks['ArticleViewHeader'][] = 'articleHeaderClearFloats';
-        return true;
-    }
-    function articleHeaderClearFloats($article, &$outputDone, &$useParserCache)
-    {
-        global $wgOut;
-        $wgOut->addHTML('<div style="clear:both;height:1px"></div>');
-        return true;
-    }
+	global $wgHooks;
+	$wgHooks['ParserFirstCallInit'][] = 'checkHeaderClearFloats';
+	function checkHeaderClearFloats($parser)
+	{
+		global $wgHooks;
+		if (!in_array('articleHeaderClearFloats', $wgHooks['ArticleViewHeader']))
+			$wgHooks['ArticleViewHeader'][] = 'articleHeaderClearFloats';
+		return true;
+	}
+	function articleHeaderClearFloats($article, &$outputDone, &$useParserCache)
+	{
+		global $wgOut;
+		$wgOut->addHTML('<div style="clear:both;height:1px"></div>');
+		return true;
+	}
 }
 // }
 
 function efPopupWhatlinkshere()
 {
-    global $wgHooks;
+	global $wgHooks;
 	$wgHooks['ArticleViewHeader'][] = 'PopupWhatlinkshere::ArticleViewHeader';
 }
 
@@ -80,4 +81,3 @@ function efAjaxWLHList($pagename)
 {
 	return PopupWhatlinkshere::AjaxWLHList($pagename);
 }
-

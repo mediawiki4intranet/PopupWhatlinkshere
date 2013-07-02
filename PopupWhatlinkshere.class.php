@@ -3,10 +3,12 @@
 class PopupWhatlinkshere
 {
 	const MAX_LINKS_COUNT = 20;
+
 	/**
 	 * @var DatabaseBase
 	 */
 	protected static $_dbr = null;
+
 	/**
 	 * @return DatabaseBase
 	 */
@@ -18,41 +20,39 @@ class PopupWhatlinkshere
 		}
 		return static::$_dbr;
 	}
-	
+
 	protected static function prepareVars($title)
 	{
 		return array(
-			
-//			'plConds'
+			// plConds
 			array(
 				'page_id=pl_from',
 				'pl_namespace' => $title->getNamespace(),
 				'pl_title' => $title->getDBkey(),
 			),
 
-//			'tlConds'
+			// tlConds
 			array(
 				'page_id=tl_from',
 				'tl_namespace' => $title->getNamespace(),
 				'tl_title' => $title->getDBkey(),
 			),
 
-//			'ilConds'
+			// ilConds
 			array(
 				'page_id=il_from',
 				'il_to' => $title->getDBkey(),
 			),
-			
-//			'options'
+
+			// options
 			array(),
 		);
 	}
 
-
 	protected static function linksCount($title)
 	{
 		$fields = 'COUNT(*) c';
-		
+
 		list($plConds, $tlConds, $ilConds, $options) = static::prepareVars($title);
 
 		$counts = array(
@@ -64,7 +64,7 @@ class PopupWhatlinkshere
 		{
 			$counts[$i] = $res->c - 0;
 		}
-		
+
 		return $counts;
 	}
 
@@ -76,11 +76,13 @@ class PopupWhatlinkshere
 		global $wgUser;
 		$title = Title::newFromText($pagename);
 		if (!$title)
+		{
 			return '';
-		
+		}
+
 		$linkscount = 0;
 		$rows = array();
-		
+
 		$counts = static::linksCount($title);
 		$limits = array(
 			'pl' => static::MAX_LINKS_COUNT,
@@ -91,7 +93,7 @@ class PopupWhatlinkshere
 		foreach ($counts as $key => $count)
 		{
 			$linkscount += $count;
-			
+
 			$limits[$key] = min($limit, $count);
 			$limit -= $count;
 			if ($limit < 0)
@@ -99,22 +101,20 @@ class PopupWhatlinkshere
 				$limit = 0;
 			}
 		}
-		
+
 		if ($linkscount <= 0)
 		{
 			return '';
 		}
-		
+
 		$fields = array( 'page_id', 'page_namespace', 'page_title', 'page_is_redirect' );
 		list($plConds, $tlConds, $ilConds, $options) = static::prepareVars($title);
 		$options['ORDER BY'] = 'page_title';
-		
-		//
+
 		$plRes = null;
 		$tlRes = null;
 		$ilRes = null;
-		
-		//
+
 		$options['LIMIT'] = $limits['pl'];
 		$plRes = static::dbr()->select( array( 'pagelinks', 'page' ), $fields, $plConds, __METHOD__, $options );
 
@@ -123,13 +123,13 @@ class PopupWhatlinkshere
 			$options['LIMIT'] = $limits['tl'];
 			$tlRes = static::dbr()->select( array( 'templatelinks', 'page' ), $fields, $tlConds, __METHOD__, $options );
 		}
-		
+
 		if ($limits['il'] > 0)
 		{
 			$options['LIMIT'] = $limits['il'];
 			$ilRes = static::dbr()->select( array( 'imagelinks', 'page' ), $fields, $ilConds, __METHOD__, $options );
 		}
-		
+
 		if ($plRes && static::dbr()->numRows($plRes))
 		{
 			foreach($plRes as $row)
@@ -157,7 +157,7 @@ class PopupWhatlinkshere
 				$rows[$row->page_id] = $row;
 			}
 		}
-		
+
 		$realLinkscount = 0;
 		foreach($rows as $i => $row)
 		{
@@ -172,15 +172,14 @@ class PopupWhatlinkshere
 				$realLinkscount++;
 			}
 		}
-		
-		
+
 		if ($realLinkscount > 0)
 		{
 			$realLinkscount = $linkscount;
-			
+
 			$html = '<div class="catlinks">';
 			$html .= '<a href="javascript:void(0)">'.wfMsgNoTrans('pwhl-reopen-link-close', $realLinkscount).'</a>';
-			
+
 			$html .= '<div class="inner">';
 			$html .= '<ul>';
 			foreach($rows as $row)
@@ -194,7 +193,7 @@ class PopupWhatlinkshere
 				$spec = SpecialPage::getTitleFor('whatlinkshere', $title->getDBkey());
 				$html .= '<p style="margin: 5px 0 0;">' . $wgUser->getSkin()->link($spec, wfMsgNoTrans('pwhl-more-links')) . '</p>';
 			}
-			
+
 			$html .= '</div>';
 			$html .= '</div>';
 		}
@@ -202,10 +201,10 @@ class PopupWhatlinkshere
 		{
 			$html = wfMsgNoTrans('pwhl-reopen-link-empty');
 		}
-		
+
 		return $html;
 	}
-	
+
 	public static function ArticleViewHeader($article, &$outputDone, &$useParserCache)
 	{
 		global $wgOut;
@@ -220,14 +219,13 @@ class PopupWhatlinkshere
 		if ($linkscount > 0)
 		{
 			global $wgOut;
-			$wgOut->addModules( 'PopupWhatlinkshere' );
+			$wgOut->addModules('PopupWhatlinkshere');
 			$wgOut->addHTML(
 				'<div id="popup_whatlinkshere_ajax" class="catlinks">'.
 					'<a href="javascript:void(0)" onclick="efPWHLShow(this);">'. wfMsgNoTrans('pwhl-reopen-link-view', $linkscount).'</a>'.
 				'</div>'
-					.'<div class="catlinks" style="line-height: 1.35em; margin: 0 0 0 2px; padding: 0.3em; clear: none; float: left">sadfasdfasdfa</div>'
 			);
-		}	
+		}
 		return true;
 	}
 }
