@@ -37,15 +37,6 @@ class PopupWhatlinkshere
 				'tl_namespace' => $title->getNamespace(),
 				'tl_title' => $title->getDBkey(),
 			),
-
-			// ilConds
-			array(
-				'page_id=il_from',
-				'il_to' => $title->getDBkey(),
-			),
-
-			// options
-			array(),
 		);
 	}
 
@@ -53,12 +44,11 @@ class PopupWhatlinkshere
 	{
 		$fields = 'COUNT(*) c';
 
-		list($plConds, $tlConds, $ilConds, $options) = static::prepareVars($title);
+		list($plConds, $tlConds) = static::prepareVars($title);
 
 		$counts = array(
-			'pl' => static::dbr()->selectRow( array( 'pagelinks', 'page' ), $fields, $plConds, __METHOD__, $options ),
-			'tl' => static::dbr()->selectRow( array( 'templatelinks', 'page' ), $fields, $tlConds, __METHOD__, $options ),
-			'il' => static::dbr()->selectRow( array( 'imagelinks', 'page' ), $fields, $ilConds, __METHOD__, $options ),
+			'pl' => static::dbr()->selectRow( array( 'pagelinks', 'page' ), $fields, $plConds, __METHOD__),
+			'tl' => static::dbr()->selectRow( array( 'templatelinks', 'page' ), $fields, $tlConds, __METHOD__),
 		);
 		foreach ($counts as $i => $res)
 		{
@@ -87,7 +77,6 @@ class PopupWhatlinkshere
 		$limits = array(
 			'pl' => static::MAX_LINKS_COUNT,
 			'tl' => 0,
-			'il' => 0,
 		);
 		$limit = static::MAX_LINKS_COUNT;
 		foreach ($counts as $key => $count)
@@ -108,15 +97,18 @@ class PopupWhatlinkshere
 		}
 
 		$fields = array( 'page_id', 'page_namespace', 'page_title', 'page_is_redirect' );
-		list($plConds, $tlConds, $ilConds, $options) = static::prepareVars($title);
-		$options['ORDER BY'] = 'page_title';
+		list($plConds, $tlConds) = static::prepareVars($title);
+		$options = array ('ORDER BY' => 'page_title');
 
 		$plRes = null;
 		$tlRes = null;
 		$ilRes = null;
 
-		$options['LIMIT'] = $limits['pl'];
-		$plRes = static::dbr()->select( array( 'pagelinks', 'page' ), $fields, $plConds, __METHOD__, $options );
+		if ($limits['pl'] > 0)
+		{
+    		$options['LIMIT'] = $limits['pl'];
+            $plRes = static::dbr()->select( array( 'pagelinks', 'page' ), $fields, $plConds, __METHOD__, $options );
+        }
 
 		if ($limits['tl'] > 0)
 		{
@@ -124,18 +116,11 @@ class PopupWhatlinkshere
 			$tlRes = static::dbr()->select( array( 'templatelinks', 'page' ), $fields, $tlConds, __METHOD__, $options );
 		}
 
-		if ($limits['il'] > 0)
-		{
-			$options['LIMIT'] = $limits['il'];
-			$ilRes = static::dbr()->select( array( 'imagelinks', 'page' ), $fields, $ilConds, __METHOD__, $options );
-		}
-
 		if ($plRes && static::dbr()->numRows($plRes))
 		{
 			foreach($plRes as $row)
 			{
 				$row->is_template = 0;
-				$row->is_image = 0;
 				$rows[$row->page_id] = $row;
 			}
 		}
@@ -144,16 +129,6 @@ class PopupWhatlinkshere
 			foreach($tlRes as $row)
 			{
 				$row->is_template = 1;
-				$row->is_image = 0;
-				$rows[$row->page_id] = $row;
-			}
-		}
-		if ($ilRes && static::dbr()->numRows($ilRes))
-		{
-			foreach($ilRes as $row)
-			{
-				$row->is_template = 0;
-				$row->is_image = 1;
 				$rows[$row->page_id] = $row;
 			}
 		}
@@ -172,7 +147,6 @@ class PopupWhatlinkshere
 				$realLinkscount++;
 			}
 		}
-
 		if ($realLinkscount > 0)
 		{
 			$realLinkscount = $linkscount;
@@ -182,8 +156,24 @@ class PopupWhatlinkshere
 
 			$html .= '<div class="inner">';
 			$html .= '<ul>';
+            $what = '';
+            $whatList = array(
+                'pl' => '',
+                'tl' => 'is_template'
+            );
 			foreach($rows as $row)
 			{
+                foreach ($whatList as $w => $key)
+                {
+                    if ($key != '' && $row->{$key} || $key == '')
+                    {
+                        if ($what != $w)
+                        {
+                            $html .= '</ul><strong>' . wfMsgNoTrans('pwhl-block-pages', $realLinkscount) . '</strong><ul>';
+                            $what = $w;
+                        }
+                    }
+                }
 				$html .= '<li>' . $wgUser->getSkin()->link($row->title, $row->title->getSubpageText()) . '</li>';
 			}
 			$html .= '</ul>';
@@ -208,8 +198,13 @@ class PopupWhatlinkshere
 	public static function ArticleViewHeader($article, &$outputDone, &$useParserCache)
 	{
 		global $wgOut;
-
+        
 		$title = $article->getTitle();
+        if ($title->getNamespace() == NS_FILE)
+        {
+            return true;
+        }
+
 		$linkscount = 0;
 		foreach (static::linksCount($title) as $k => $count)
 		{
