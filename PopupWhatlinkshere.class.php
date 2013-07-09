@@ -4,23 +4,6 @@ class PopupWhatlinkshere
 {
 	const MAX_LINKS_COUNT = 20;
 
-	/**
-	 * @var DatabaseBase
-	 */
-	protected static $_dbr = null;
-
-	/**
-	 * @return DatabaseBase
-	 */
-	protected static function dbr()
-	{
-		if (static::$_dbr == null)
-		{
-			static::$_dbr = wfGetDB( DB_SLAVE );
-		}
-		return static::$_dbr;
-	}
-
 	protected static function prepareVars($title)
 	{
 		return array(
@@ -42,19 +25,12 @@ class PopupWhatlinkshere
 
 	protected static function linksCount($title)
 	{
-		$fields = 'COUNT(*) c';
-
 		list($plConds, $tlConds) = static::prepareVars($title);
-
+		$dbr = wfGetDB(DB_SLAVE);
 		$counts = array(
-			'pl' => static::dbr()->selectRow( array( 'pagelinks', 'page' ), $fields, $plConds, __METHOD__),
-			'tl' => static::dbr()->selectRow( array( 'templatelinks', 'page' ), $fields, $tlConds, __METHOD__),
+			'pl' => $dbr->selectField(array('pagelinks', 'page'), 'COUNT(*)', $plConds, __METHOD__),
+			'tl' => $dbr->selectField(array('templatelinks', 'page'), 'COUNT(*)', $tlConds, __METHOD__),
 		);
-		foreach ($counts as $i => $res)
-		{
-			$counts[$i] = $res->c - 0;
-		}
-
 		return $counts;
 	}
 
@@ -95,6 +71,7 @@ class PopupWhatlinkshere
 		{
 			return '';
 		}
+		$dbr = wfGetDB(DB_SLAVE);
 
 		$fields = array( 'page_id', 'page_namespace', 'page_title', 'page_is_redirect' );
 		list($plConds, $tlConds) = static::prepareVars($title);
@@ -107,26 +84,26 @@ class PopupWhatlinkshere
 		if ($limits['pl'] > 0)
 		{
     		$options['LIMIT'] = $limits['pl'];
-            $plRes = static::dbr()->select( array( 'pagelinks', 'page' ), $fields, $plConds, __METHOD__, $options );
+    		$plRes = $dbr->select(array('pagelinks', 'page'), $fields, $plConds, __METHOD__, $options);
         }
 
-		if ($limits['tl'] > 0)
+        if ($limits['tl'] > 0)
 		{
 			$options['LIMIT'] = $limits['tl'];
-			$tlRes = static::dbr()->select( array( 'templatelinks', 'page' ), $fields, $tlConds, __METHOD__, $options );
+			$tlRes = $dbr->select(array('templatelinks', 'page'), $fields, $tlConds, __METHOD__, $options);
 		}
 
-		if ($plRes && static::dbr()->numRows($plRes))
+		if ($plRes && $dbr->numRows($plRes))
 		{
-			foreach($plRes as $row)
+			foreach ($plRes as $row)
 			{
 				$row->is_template = 0;
 				$rows[$row->page_id] = $row;
 			}
 		}
-		if ($tlRes && static::dbr()->numRows($tlRes))
+		if ($tlRes && $dbr->numRows($tlRes))
 		{
-			foreach($tlRes as $row)
+			foreach ($tlRes as $row)
 			{
 				$row->is_template = 1;
 				$rows[$row->page_id] = $row;
