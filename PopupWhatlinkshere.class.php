@@ -4,23 +4,6 @@ class PopupWhatlinkshere
 {
 	const MAX_LINKS_COUNT = 20;
 
-	/**
-	 * @var DatabaseBase
-	 */
-	protected static $_dbr = null;
-
-	/**
-	 * @return DatabaseBase
-	 */
-	protected static function dbr()
-	{
-		if (static::$_dbr == null)
-		{
-			static::$_dbr = wfGetDB( DB_SLAVE );
-		}
-		return static::$_dbr;
-	}
-
 	protected static function prepareVars($title)
 	{
 		return array(
@@ -43,28 +26,18 @@ class PopupWhatlinkshere
 				'page_id=il_from',
 				'il_to' => $title->getDBkey(),
 			),
-
-			// options
-			array(),
 		);
 	}
 
 	protected static function linksCount($title)
 	{
-		$fields = 'COUNT(*) c';
-
-		list($plConds, $tlConds, $ilConds, $options) = static::prepareVars($title);
-
+		list($plConds, $tlConds, $ilConds) = static::prepareVars($title);
+		$dbr = wfGetDB(DB_SLAVE);
 		$counts = array(
-			'pl' => static::dbr()->selectRow( array( 'pagelinks', 'page' ), $fields, $plConds, __METHOD__, $options ),
-			'tl' => static::dbr()->selectRow( array( 'templatelinks', 'page' ), $fields, $tlConds, __METHOD__, $options ),
-			'il' => static::dbr()->selectRow( array( 'imagelinks', 'page' ), $fields, $ilConds, __METHOD__, $options ),
+			'pl' => $dbr->selectField(array('pagelinks', 'page'), 'COUNT(*)', $plConds, __METHOD__),
+			'tl' => $dbr->selectField(array('templatelinks', 'page'), 'COUNT(*)', $tlConds, __METHOD__),
+			'il' => $dbr->selectField(array('imagelinks', 'page'), 'COUNT(*)', $ilConds, __METHOD__),
 		);
-		foreach ($counts as $i => $res)
-		{
-			$counts[$i] = $res->c - 0;
-		}
-
 		return $counts;
 	}
 
@@ -107,50 +80,51 @@ class PopupWhatlinkshere
 			return '';
 		}
 
-		$fields = array( 'page_id', 'page_namespace', 'page_title', 'page_is_redirect' );
-		list($plConds, $tlConds, $ilConds, $options) = static::prepareVars($title);
-		$options['ORDER BY'] = 'page_title';
+		$fields = array('page_id', 'page_namespace', 'page_title', 'page_is_redirect');
+		list($plConds, $tlConds, $ilConds) = static::prepareVars($title);
+		$options = array('ORDER BY' => 'page_title');
 
 		$plRes = null;
 		$tlRes = null;
 		$ilRes = null;
 
 		$options['LIMIT'] = $limits['pl'];
-		$plRes = static::dbr()->select( array( 'pagelinks', 'page' ), $fields, $plConds, __METHOD__, $options );
+		$dbr = wfGetDB(DB_SLAVE);
+		$plRes = $dbr->select(array('pagelinks', 'page'), $fields, $plConds, __METHOD__, $options);
 
 		if ($limits['tl'] > 0)
 		{
 			$options['LIMIT'] = $limits['tl'];
-			$tlRes = static::dbr()->select( array( 'templatelinks', 'page' ), $fields, $tlConds, __METHOD__, $options );
+			$tlRes = $dbr->select(array('templatelinks', 'page'), $fields, $tlConds, __METHOD__, $options);
 		}
 
 		if ($limits['il'] > 0)
 		{
 			$options['LIMIT'] = $limits['il'];
-			$ilRes = static::dbr()->select( array( 'imagelinks', 'page' ), $fields, $ilConds, __METHOD__, $options );
+			$ilRes = $dbr->select(array('imagelinks', 'page'), $fields, $ilConds, __METHOD__, $options);
 		}
 
-		if ($plRes && static::dbr()->numRows($plRes))
+		if ($plRes && $dbr->numRows($plRes))
 		{
-			foreach($plRes as $row)
+			foreach ($plRes as $row)
 			{
 				$row->is_template = 0;
 				$row->is_image = 0;
 				$rows[$row->page_id] = $row;
 			}
 		}
-		if ($tlRes && static::dbr()->numRows($tlRes))
+		if ($tlRes && $dbr->numRows($tlRes))
 		{
-			foreach($tlRes as $row)
+			foreach ($tlRes as $row)
 			{
 				$row->is_template = 1;
 				$row->is_image = 0;
 				$rows[$row->page_id] = $row;
 			}
 		}
-		if ($ilRes && static::dbr()->numRows($ilRes))
+		if ($ilRes && $dbr->numRows($ilRes))
 		{
-			foreach($ilRes as $row)
+			foreach ($ilRes as $row)
 			{
 				$row->is_template = 0;
 				$row->is_image = 1;
