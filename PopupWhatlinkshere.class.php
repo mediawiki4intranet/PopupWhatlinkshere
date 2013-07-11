@@ -83,11 +83,11 @@ class PopupWhatlinkshere
 
 		if ($limits['pl'] > 0)
 		{
-    		$options['LIMIT'] = $limits['pl'];
-    		$plRes = $dbr->select(array('pagelinks', 'page'), $fields, $plConds, __METHOD__, $options);
-        }
+			$options['LIMIT'] = $limits['pl'];
+			$plRes = $dbr->select(array('pagelinks', 'page'), $fields, $plConds, __METHOD__, $options);
+		}
 
-        if ($limits['tl'] > 0)
+		if ($limits['tl'] > 0)
 		{
 			$options['LIMIT'] = $limits['tl'];
 			$tlRes = $dbr->select(array('templatelinks', 'page'), $fields, $tlConds, __METHOD__, $options);
@@ -133,24 +133,24 @@ class PopupWhatlinkshere
 
 			$html .= '<div class="inner">';
 			$html .= '<ul>';
-            $what = '';
-            $whatList = array(
-                'pl' => '',
-                'tl' => 'is_template'
-            );
+			$what = '';
+			$whatList = array(
+				'pl' => '',
+				'tl' => 'is_template'
+			);
 			foreach($rows as $row)
 			{
-                foreach ($whatList as $w => $key)
-                {
-                    if ($key != '' && $row->{$key} || $key == '')
-                    {
-                        if ($what != $w)
-                        {
-                            $html .= '</ul><strong>' . wfMsgNoTrans('pwhl-block-pages', $realLinkscount) . '</strong><ul>';
-                            $what = $w;
-                        }
-                    }
-                }
+				foreach ($whatList as $w => $key)
+				{
+					if ($key != '' && $row->{$key} || $key == '')
+					{
+						if ($what != $w)
+						{
+							$html .= '</ul><strong>' . wfMsgNoTrans('pwhl-block-pages', $realLinkscount) . '</strong><ul>';
+							$what = $w;
+						}
+					}
+				}
 				$html .= '<li>' . $wgUser->getSkin()->link($row->title, $row->title->getSubpageText()) . '</li>';
 			}
 			$html .= '</ul>';
@@ -175,12 +175,12 @@ class PopupWhatlinkshere
 	public static function ArticleViewHeader($article, &$outputDone, &$useParserCache)
 	{
 		global $wgOut;
-        
+
 		$title = $article->getTitle();
-        if ($title->getNamespace() == NS_FILE)
-        {
-            return true;
-        }
+		if ($title->getNamespace() == NS_FILE)
+		{
+			return true;
+		}
 
 		$linkscount = 0;
 		foreach (static::linksCount($title) as $k => $count)
