@@ -133,23 +133,13 @@ class PopupWhatlinkshere
 
 			$html .= '<div class="inner">';
 			$html .= '<ul>';
-			$what = '';
-			$whatList = array(
-				'pl' => '',
-				'tl' => 'is_template'
-			);
+			$what = NULL;
 			foreach($rows as $row)
 			{
-				foreach ($whatList as $w => $key)
+				if ($what === NULL || $row->is_template != $what)
 				{
-					if ($key != '' && $row->{$key} || $key == '')
-					{
-						if ($what != $w)
-						{
-							$html .= '</ul><strong>' . wfMsgNoTrans('pwhl-block-pages', $realLinkscount) . '</strong><ul>';
-							$what = $w;
-						}
-					}
+					$html .= '</ul><strong>' . wfMsgNoTrans('pwhl-block-pages', $realLinkscount) . '</strong><ul>';
+					$what = $row->is_template;
 				}
 				$html .= '<li>' . $wgUser->getSkin()->link($row->title, $row->title->getSubpageText()) . '</li>';
 			}
