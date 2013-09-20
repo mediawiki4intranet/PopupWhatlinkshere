@@ -147,7 +147,7 @@ class PopupWhatlinkshere
 
 			if ($linkscount > static::MAX_LINKS_COUNT)
 			{
-				$spec = SpecialPage::getTitleFor('whatlinkshere', $title->getDBkey());
+				$spec = SpecialPage::getTitleFor('whatlinkshere', $title->getPrefixedText());
 				$html .= '<p style="margin: 5px 0 0;">' . $wgUser->getSkin()->link($spec, wfMsgNoTrans('pwhl-more-links')) . '</p>';
 			}
 
