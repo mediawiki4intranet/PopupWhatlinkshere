@@ -40,9 +40,14 @@ $wgExtensionCredits['parserhook'][] = array(
 	'url'     => 'http://wiki.4intra.net/PopupWhatlinkshere',
 	'version' => '2013-06-26',
 );
+$wgResourceModules['LikeCatlinks'] = array(
+	'localBasePath' => __DIR__,
+	'remoteExtPath' => 'PopupWhatlinkshere',
+	'styles'        => array('likecatlinks.css'),
+	'position'      => 'top',
+);
 $wgResourceModules['PopupWhatlinkshere'] = array(
 	'scripts'       => array('PopupWhatlinkshere.js'),
-	'styles'        => array('PopupWhatlinkshere.css'),
 	'dependencies'  => array('jquery'),
 	'localBasePath' => __DIR__,
 	'remoteExtPath' => 'PopupWhatlinkshere',

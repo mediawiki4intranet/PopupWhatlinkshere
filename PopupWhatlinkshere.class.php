@@ -128,7 +128,7 @@ class PopupWhatlinkshere
 		{
 			$realLinkscount = $linkscount;
 
-			$html = '<div class="catlinks">';
+			$html = '<div class="like-cl">';
 			$html .= '<a href="javascript:void(0)">'.wfMsgNoTrans('pwhl-reopen-link-close', $realLinkscount).'</a>';
 
 			$html .= '<div class="inner">';
@@ -181,9 +181,9 @@ class PopupWhatlinkshere
 		if ($linkscount > 0)
 		{
 			global $wgOut;
-			$wgOut->addModules('PopupWhatlinkshere');
+			$wgOut->addModules(array('LikeCatlinks', 'PopupWhatlinkshere'));
 			$wgOut->addHTML(
-				'<div id="popup_whatlinkshere_ajax" class="catlinks">'.
+				'<div id="popup_whatlinkshere_ajax" class="like-cl like-cl-outer">'.
 					'<a href="javascript:void(0)" onclick="efPWHLShow(this);">'. wfMsgNoTrans('pwhl-reopen-link-view', $linkscount).'</a>'.
 				'</div>'
 			);
