@@ -15,7 +15,7 @@ window.efPWHLShow = function(link)
 			s = $(s);
 			var d = s.find('div.inner')[0];
 			var c = s.find('a')[0].innerHTML;
-			s.find('a').click(function() {
+			s.find('a:first').click(function() {
 				openText = openText || this.innerHTML;
 				var open = d.style.display != 'none';
 				this.innerHTML = open ? closedText : openText;
