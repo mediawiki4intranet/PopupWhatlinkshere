@@ -42,7 +42,7 @@ $wgExtensionCredits['parserhook'][] = array(
 );
 $wgResourceModules['LikeCatlinks'] = array(
 	'localBasePath' => __DIR__,
-	'remoteExtPath' => 'TemplatedPageList',
+	'remoteExtPath' => 'Popupwhatlinkshere',
 	'styles' => array(
 		'likecatlinks.css' => array('media' => 'screen'),
 		'likecatlinks.print.css' => array('media' => 'print'),
@@ -51,7 +51,6 @@ $wgResourceModules['LikeCatlinks'] = array(
 );
 $wgResourceModules['PopupWhatlinkshere'] = array(
 	'scripts'       => array('PopupWhatlinkshere.js'),
-	'dependencies'  => array('jquery'),
 	'localBasePath' => __DIR__,
 	'remoteExtPath' => 'PopupWhatlinkshere',
 	'position'      => 'top',

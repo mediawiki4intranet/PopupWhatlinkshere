@@ -58,7 +58,6 @@ class PopupWhatlinkshere
 		foreach ($counts as $key => $count)
 		{
 			$linkscount += $count;
-
 			$limits[$key] = min($limit, $count);
 			$limit -= $count;
 			if ($limit < 0)
@@ -73,9 +72,9 @@ class PopupWhatlinkshere
 		}
 		$dbr = wfGetDB(DB_SLAVE);
 
-		$fields = array( 'page_id', 'page_namespace', 'page_title', 'page_is_redirect' );
+		$fields = array('page_id', 'page_namespace', 'page_title', 'page_is_redirect');
 		list($plConds, $tlConds) = static::prepareVars($title);
-		$options = array ('ORDER BY' => 'page_title');
+		$options = array('ORDER BY' => 'page_title');
 
 		$plRes = null;
 		$tlRes = null;
@@ -114,7 +113,7 @@ class PopupWhatlinkshere
 		foreach($rows as $i => $row)
 		{
 			$ptitle = Title::newFromRow($row);
-			if (!$ptitle->userCanRead())
+			if (!$ptitle->userCan('read'))
 			{
 				unset($rows[$i]);
 			}
@@ -124,13 +123,11 @@ class PopupWhatlinkshere
 				$realLinkscount++;
 			}
 		}
+		$html = '<div class="like-cl">';
 		if ($realLinkscount > 0)
 		{
 			$realLinkscount = $linkscount;
-
-			$html = '<div class="like-cl">';
 			$html .= '<a href="javascript:void(0)">'.wfMsgNoTrans('pwhl-reopen-link-close', $realLinkscount).'</a>';
-
 			$html .= '<div class="inner">';
 			$html .= '<ul>';
 			$what = NULL;
@@ -144,22 +141,21 @@ class PopupWhatlinkshere
 				$html .= '<li>' . $wgUser->getSkin()->link($row->title, $row->title->getSubpageText()) . '</li>';
 			}
 			$html .= '</ul>';
-
 			if ($linkscount > static::MAX_LINKS_COUNT)
 			{
 				$spec = SpecialPage::getTitleFor('whatlinkshere', $title->getPrefixedText());
 				$html .= '<p style="margin: 5px 0 0;">' . $wgUser->getSkin()->link($spec, wfMsgNoTrans('pwhl-more-links')) . '</p>';
 			}
-
-			$html .= '</div>';
 			$html .= '</div>';
 		}
 		else
 		{
-			$html = wfMsgNoTrans('pwhl-reopen-link-empty');
+			$html .= wfMsgNoTrans('pwhl-reopen-link-empty');
 		}
-
-		return $html;
+		$html .= '</div>';
+		header("Content-Type: text/html; charset=utf-8");
+		print $html;
+		exit;
 	}
 
 	public static function ArticleViewHeader($article, &$outputDone, &$useParserCache)

@@ -2,19 +2,20 @@ window.efPWHLShow = function(link)
 {
 	var closedText = link.innerHTML;
 	var openText;
-	sajax_do_call(
-		'efAjaxWLHList',
-		[wgPageName],
-		function(request)
+	$.ajax({
+		url: mw.util.wikiScript()+'?action=ajax',
+		type: 'POST',
+		data: {
+			rs: 'efAjaxWLHList',
+			rsargs: [ mw.config.get('wgPageName') ]
+		},
+		success: function(result)
 		{
-			if (request.status != 200)
-				return;
 			var s = document.getElementById('popup_whatlinkshere_ajax');
 			s.className = 'like-cl-outer';
-			s.innerHTML = request.responseText;
+			s.innerHTML = result;
 			s = $(s);
 			var d = s.find('div.inner')[0];
-			var c = s.find('a')[0].innerHTML;
 			s.find('a:first').click(function() {
 				openText = openText || this.innerHTML;
 				var open = d.style.display != 'none';
@@ -22,5 +23,5 @@ window.efPWHLShow = function(link)
 				d.style.display = open ? 'none' : 'block';
 			});
 		}
-	);
+	});
 };
