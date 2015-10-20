@@ -177,7 +177,8 @@ class PopupWhatlinkshere
 		if ($linkscount > 0)
 		{
 			global $wgOut;
-			$wgOut->addModules(array('LikeCatlinks', 'PopupWhatlinkshere'));
+			$wgOut->addModuleStyles('LikeCatlinks');
+			$wgOut->addModules('PopupWhatlinkshere');
 			$wgOut->addHTML(
 				'<div id="popup_whatlinkshere_ajax" class="like-cl like-cl-outer">'.
 					'<a href="javascript:void(0)" onclick="efPWHLShow(this);">'. wfMsgNoTrans('pwhl-reopen-link-view', $linkscount).'</a>'.

@@ -38,7 +38,7 @@ $wgExtensionCredits['parserhook'][] = array(
 	'name'    => 'Popup What links here',
 	'author'  => 'Vladimir Koptev',
 	'url'     => 'http://wiki.4intra.net/PopupWhatlinkshere',
-	'version' => '2013-06-26',
+	'version' => '2015-10-20',
 );
 $wgResourceModules['LikeCatlinks'] = array(
 	'localBasePath' => __DIR__,
