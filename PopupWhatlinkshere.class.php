@@ -6,14 +6,14 @@ class PopupWhatlinkshere
 
 	protected static function prepareVars($title)
 	{
-		return array(
+		global $haclgContLang;
+		$r = array(
 			// plConds
 			array(
 				'page_id=pl_from',
 				'pl_namespace' => $title->getNamespace(),
 				'pl_title' => $title->getDBkey(),
 			),
-
 			// tlConds
 			array(
 				'page_id=tl_from',
@@ -21,6 +21,12 @@ class PopupWhatlinkshere
 				'tl_title' => $title->getDBkey(),
 			),
 		);
+		if (!empty($haclgContLang))
+		{
+			$pd = Title::newFromText($haclgContLang->getPermissionDeniedPage())->getArticleId();
+			$r[0][] = $r[1][] = 'page_id!='.$pd;
+		}
+		return $r;
 	}
 
 	protected static function linksCount($title)
