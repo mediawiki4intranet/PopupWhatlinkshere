@@ -64,7 +64,9 @@ if (!function_exists('articleHeaderClearFloats'))
 	$wgHooks['ParserFirstCallInit'][] = 'checkHeaderClearFloats';
 	function checkHeaderClearFloats($parser)
 	{
-		global $wgHooks;
+		global $wgHooks, $wgRequest;
+		if ($wgRequest->getVal('action') === 'render')
+			return true;
 		if (!in_array('articleHeaderClearFloats', $wgHooks['ArticleViewHeader']))
 			$wgHooks['ArticleViewHeader'][] = 'articleHeaderClearFloats';
 		return true;
@@ -81,7 +83,15 @@ if (!function_exists('articleHeaderClearFloats'))
 function efPopupWhatlinkshere()
 {
 	global $wgHooks;
-	$wgHooks['ArticleViewHeader'][] = 'PopupWhatlinkshere::ArticleViewHeader';
+	$wgHooks['ArticleViewHeader'][] = 'efPWLHArticleViewHeader';
+}
+
+function efPWLHArticleViewHeader($article, &$outputDone, &$useParserCache)
+{
+	global $wgRequest;
+	if ($wgRequest->getVal('action') === 'render')
+		return true;
+	return PopupWhatlinkshere::ArticleViewHeader($article, $outputDone, $useParserCache);
 }
 
 function efAjaxWLHList($pagename)
